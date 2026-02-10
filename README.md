@@ -1,4 +1,4 @@
-# AWS Full Pipeline Template
+# AWS Data Engineering Template
 
 A practical, production‑minded template for building **AWS‑native data pipelines**. It includes ready‑made patterns for **S3 ingestion**, **Glue ETL**, **Lambda validation**, **Redshift loading**, **Athena SQL use**, **Step Functions for heavy workflows**, and **API Gateway → Lambda ingestion**.
 
@@ -57,7 +57,7 @@ config/                     # dev/prod config
 
 ---
 
-## 🚦 Quick Start
+## Quick Start
 1) **Clone** the repo created from this template.
 2) **Configure IAM Roles** for your runtime (EC2/ECS/EKS) with least privilege to S3, Glue, Lambda, Redshift, and (optional) Step Functions.
 3) **Install dependencies**:
@@ -75,7 +75,7 @@ prefect deploy --all
 
 ---
 
-## 🔐 IAM & Security
+## IAM & Security
 - Use **IAM roles** (no long‑lived keys). Separate roles for Glue, Lambda, Redshift access, and the host/runner (EC2/ECS/EKS).
 - Apply **least privilege**: fine‑grained S3 prefixes; scoped Glue/Lambda permissions; Redshift data‑api:ExecuteStatement only where needed.
 - Enforce **S3 Block Public Access**, default **SSE‑S3 or SSE‑KMS** encryption, and **VPC endpoints** for private connectivity.
