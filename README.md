@@ -1,2 +1,2 @@
-# AWS Prefect Full Pipeline Template
+# AWS Full Pipeline Template
 Placeholder README.
