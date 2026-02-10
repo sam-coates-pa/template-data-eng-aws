@@ -1,1 +1,3 @@
-def test_s3(): assert True
+
+def test_s3_upload_mock():
+    assert True
