@@ -1,0 +1,25 @@
+# Prefect orchestration
+prefect>=2.16.0
+
+# AWS SDK
+boto3>=1.34.0
+botocore>=1.34.0
+
+# Redshift access (driver + Data API)
+psycopg2-binary>=2.9.9
+redshift-connector>=2.0.913
+
+# Data processing
+pandas>=2.1.0
+pyarrow>=14.0.2
+
+# (Optional) Local Spark development for Glue-like testing
+pyspark>=3.4.0
+
+# API Gateway & Lambda helpers (optional)
+awscli>=1.32.0
+
+# Testing & Linting
+pytest>=7.0.0
+black>=24.0.0
+flake8>=7.0.0

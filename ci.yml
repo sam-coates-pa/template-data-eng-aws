@@ -1,0 +1,84 @@
+name: CI and Prefect Deployments
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flows/**"
+      - "src/**"
+      - "config/**"
+      - "requirements.txt"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  # ---- CI: Tests + Linting ----
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run flake8 linting
+        run: |
+          flake8 src flows
+
+      - name: Run black formatting check
+        run: |
+          black --check .
+
+      - name: Run tests
+        run: |
+          pytest -q
+
+
+  # ---- Prefect Deployment ----
+  prefect-deploy:
+    runs-on: ubuntu-latest
+    needs: test-and-lint
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install prefect
+
+      - name: Prefect Login
+        env:
+          PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
+          PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+        run: |
+          prefect config set PREFECT_API_URL=$PREFECT_API_URL
+          prefect cloud login --key $PREFECT_API_KEY
+
+      - name: Deploy Prefect Blocks
+        run: |
+          if [ -f scripts/deploy_blocks.py ]; then
+            python scripts/deploy_blocks.py
+          fi
+
+      - name: Register Prefect Deployments
+        run: |
+          prefect deploy --all
