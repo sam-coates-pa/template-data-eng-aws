@@ -6,7 +6,7 @@ A practical, production‑minded template for building **AWS‑native data pipel
 
 ---
 
-## 🔎 What You Get
+## What's included
 - **End‑to‑end Prefect flow**: Extract → Stage to S3 → Glue ETL → Lambda validation → Load to Redshift
 - **AWS modules**: S3 utilities, Glue job trigger, Lambda invoker, Redshift loader (psycopg2 + Data API)
 - **Extras**: Athena query examples, Step Functions pattern, API Gateway → Lambda ingestion pattern
@@ -14,7 +14,7 @@ A practical, production‑minded template for building **AWS‑native data pipel
 
 ---
 
-## 🏗 Reference Architecture
+## Reference Architecture
 ```
 Source/API → (API Gateway → Lambda) → Prefect Flow
                  │                       │
@@ -39,7 +39,7 @@ Source/API → (API Gateway → Lambda) → Prefect Flow
 
 ---
 
-## 📁 Project Layout (key folders)
+## Project Layout (key folders)
 ```
 flows/                      # Prefect flows
 src/aws/s3/                 # S3 helpers (read/write, partitions)
@@ -75,14 +75,14 @@ prefect deploy --all
 
 ---
 
-## 🔐 IAM & Security (essentials)
+## 🔐 IAM & Security
 - Use **IAM roles** (no long‑lived keys). Separate roles for Glue, Lambda, Redshift access, and the host/runner (EC2/ECS/EKS).
 - Apply **least privilege**: fine‑grained S3 prefixes; scoped Glue/Lambda permissions; Redshift data‑api:ExecuteStatement only where needed.
 - Enforce **S3 Block Public Access**, default **SSE‑S3 or SSE‑KMS** encryption, and **VPC endpoints** for private connectivity.
 
 ---
 
-## 🧩 Prefect Flow Pattern (simplified)
+## Prefect Flow Pattern (simplified)
 ```python
 from prefect import flow, task
 
@@ -120,14 +120,14 @@ def pipeline(run_date: str):
 
 ---
 
-## 🗃 S3 Conventions
+## S3 Conventions
 - Buckets split by environment: `my‑proj‑raw‑dev`, `my‑proj‑processed‑dev`, etc.
 - Prefixes: `raw/<source>/<yyyy>/<mm>/<dd>/...` and `processed/<domain>/<table>/partition=...`
 - File formats: **Parquet + Snappy** for analytics; **JSON/CSV** accepted as raw.
 
 ---
 
-## 🧪 Glue ETL (Spark) – Example Job
+## Glue ETL (Spark) – Example Job
 **Goal:** Convert raw JSON/CSV in S3 → partitioned Parquet in `processed/` with schema enforcement.
 
 Job arguments (example):
@@ -165,7 +165,7 @@ raw.write.mode("append").partitionBy("ingest_date").parquet(args["out_prefix"])
 
 ---
 
-## 🧭 Lambda Validator – Pattern
+## Lambda Validator – Pattern
 - Input: processed S3 prefix
 - Checks: row counts, required columns, basic domain rules
 - Outputs: pass/fail; optional SNS/Slack notification
@@ -181,7 +181,7 @@ def handler(event, context):
 
 ---
 
-## 🧱 Redshift Loading – Two Options
+## Redshift Loading – Two Options
 1) **Driver (psycopg2)**
    - Use **COPY from S3** for large loads:
    ```sql
@@ -200,7 +200,7 @@ def handler(event, context):
 
 ---
 
-## 🔎 Athena SQL – Examples
+## Athena SQL – Examples
 Put reusable queries in `athena/` and parameterize via your tooling.
 
 Example 1: Inspect processed data
@@ -235,7 +235,7 @@ LOCATION 's3://<processed-bucket>/domain/table/';
 
 ---
 
-## 🏃 Step Functions – Pattern for Heavy Workflows
+## Step Functions – Pattern for Heavy Workflows
 Use AWS Step Functions for long‑running or multi‑stage jobs (e.g., multi‑table Glue batches). Store the ASL (Amazon States Language) in `stepfunctions/`.
 
 Minimal ASL (JSON):
@@ -267,7 +267,7 @@ Minimal ASL (JSON):
 
 ---
 
-## 🌐 API Gateway → Lambda Ingestion
+## API Gateway → Lambda Ingestion
 Use when pulling data via webhooks or offering a lightweight ingestion API.
 
 - **API Gateway** (REST/HTTP API) receives requests and authorizes (IAM/JWT)
@@ -299,7 +299,7 @@ def handler(event, context):
 
 ---
 
-## 🧪 Testing & Quality
+## Testing & Quality
 - Unit tests for each module (`src/aws/...`)
 - Integration tests using real S3 (dev) or moto/localstack if acceptable
 - Data tests: schema + row count assertions
@@ -307,14 +307,14 @@ def handler(event, context):
 
 ---
 
-## 🔄 CI/CD (optional examples)
+## CI/CD (optional examples)
 - **CI**: run tests + lint on PRs
 - **Prefect deployment**: on changes in `flows/` or `src/`
 - **Glue/Lambda**: job code sync & function update steps
 
 ---
 
-## 🧭 Operations
+## Operations
 - Observe: Prefect logs, CloudWatch (Glue/Lambda), Redshift system tables
 - Alert on failures (SNS → email/Slack)
 - Cost controls: Glue DPUs, Redshift WLM, Parquet + partitioning
@@ -332,5 +332,5 @@ def handler(event, context):
 
 ---
 
-## 📄 License & Contributions
-MIT (or your org’s standard). PRs welcome for additional patterns (Athena CTAS, Step Functions maps, CDC, dbt models, etc.).
+## License & Contributions
+PA's standard - PRs welcome for additional patterns (Athena CTAS, Step Functions maps, CDC, dbt models, etc.).
