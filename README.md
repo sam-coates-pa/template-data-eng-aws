@@ -16,43 +16,105 @@ A practical, production‑minded template for building **AWS‑native data pipel
 
 ## Reference Architecture
 ```
-Source/API → (API Gateway → Lambda) → Prefect Flow
-                 │                       │
-                 └──────────────────────► │ Extract
-                                          │
-                               S3 (raw) ◄─┘
-                                    │
-                                    ▼
-                              AWS Glue (ETL)
-                                    │
-                               S3 (processed)
-                                    │
-                                    ▼
-                            Lambda (validation)
-                                    │
-                                    ▼
-                                Redshift (DW)
-                                    │
-                                    ▼
-                              Athena (ad‑hoc)
+┌─────────────────────────────────────────┐
+│             Source / API                │
+└─────────────────────────────────────────┘
+                   │
+                   ▼
+      ┌────────────────────────────────┐
+      │    API Gateway → Lambda        │
+      │ (Optional real-time ingestion) │
+      └────────────────────────────────┘
+                   │
+                   ▼
+         ┌─────────────────────────┐
+         │       Prefect Flow      │
+         │  (orchestration layer)  │
+         └─────────────────────────┘
+                   │                                     
+                   ▼                                     
+      ┌─────────────────────────────┐                    
+      │         Extract Task        │
+      │  (API / file / event input) │
+      └─────────────────────────────┘
+                   │
+                   ▼
+      ┌─────────────────────────────┐
+      │          S3 (raw)           │
+      │   Landing / ingestion zone  │
+      └─────────────────────────────┘
+                   │
+                   ▼
+      ┌─────────────────────────────┐
+      │        AWS Glue (ETL)       │
+      │  Spark job: clean + enrich  │
+      └─────────────────────────────┘
+                   │
+                   ▼
+      ┌─────────────────────────────┐
+      │       S3 (processed)        │
+      │ Curated parquet datasets    │
+      └─────────────────────────────┘
+                   │
+                   ▼
+      ┌─────────────────────────────┐
+      │    Lambda (validation)      │
+      │ Schema checks, counts, DQ   │
+      └─────────────────────────────┘
+                   │
+                   ▼
+      ┌─────────────────────────────┐
+      │        Redshift (DW)        │
+      │ Fact/dimension load (COPY)  │
+      └─────────────────────────────┘
+                   │
+                   ▼
+      ┌─────────────────────────────┐
+      │       Athena (ad‑hoc)       │
+      │   SQL exploration + QA      │
+      └─────────────────────────────┘
 ```
 
 ---
 
 ## Project Layout (key folders)
 ```
-flows/                      # Prefect flows
-src/aws/s3/                 # S3 helpers (read/write, partitions)
-src/aws/glue/               # Glue job trigger helpers
-src/aws/lambda/             # Lambda invocation helpers
-src/aws/redshift/           # Redshift loaders (psycopg2 + Data API)
-_glue-job/                  # Glue ETL job script(s)
-_lambda/example_lambda/     # Example Lambda function
-athena/                     # Athena SQL examples
-stepfunctions/              # Sample ASL state machine (JSON/YAML)
-api-gateway/                # Example OpenAPI spec + mapping
-config/                     # dev/prod config
-.tests/                     # unit/integration tests
+flows/                     # Prefect flow definitions (end-to-end pipelines)
+
+src/aws/                   # AWS service helpers
+    uploader.py            # S3 upload/download utilities
+    glue_trigger.py        # AWS Glue job triggers
+    lambda_invoker.py      # Lambda invocation helpers
+    redshift_loader.py     # Redshift loaders (COPY, Data API, psycopg2 etc.)
+
+glue-job/                  # AWS Glue ETL job script(s)
+
+lambda/                    # AWS Lambda function source
+    lambda_function.py     # Example Lambda function
+
+config/                    # Environment-specific configuration
+    dev.yaml               # Development config
+    prod.yaml              # Production config
+
+scripts/                   # Prefect deployment utilities
+    deploy_blocks.py       # Creates Prefect infrastructure blocks
+    register_flows.py      # Registers Prefect deployments
+
+tests/                     # Unit tests for AWS modules & flows
+    test_s3.py             # Placeholder S3 test
+    test_glue.py           # Placeholder Glue test
+    test_lambda.py         # Placeholder Lambda test
+    test_redshift.py       # Placeholder Redshift test
+
+data/                      # Sample or placeholder data assets (optional)
+
+.github/workflows/         # GitHub Actions CI/CD pipelines
+    ci.yml                 # Linting, tests, (optional) Prefect deployments
+
+Makefile                   # Developer command shortcuts (install, lint, test, run, deploy)
+requirements.txt           # Python dependencies
+env.example                # Template for environment variables
+README.md                  # Project documentation
 ```
 
 ---
