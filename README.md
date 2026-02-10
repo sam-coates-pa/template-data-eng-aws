@@ -2,7 +2,7 @@
 
 A practical, production‑minded template for building **AWS‑native data pipelines**. It includes ready‑made patterns for **S3 ingestion**, **Glue ETL**, **Lambda validation**, **Redshift loading**, **Athena SQL use**, **Step Functions for heavy workflows**, and **API Gateway → Lambda ingestion**.
 
-> Use this as a GitHub Template Repository to give teams a fast, consistent starting point.
+> Use this as a GitHub Template Repository to provide a fast, consistent starting point.
 
 ---
 
