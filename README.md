@@ -1,13 +1,13 @@
 # AWS Full Pipeline Template
 
-A practical, production‑minded template for building **AWS‑native data pipelines** orchestrated with **Prefect 2.x**. It includes ready‑made patterns for **S3 ingestion**, **Glue ETL**, **Lambda validation**, **Redshift loading**, **Athena SQL use**, **Step Functions for heavy workflows**, and **API Gateway → Lambda ingestion**.
+A practical, production‑minded template for building **AWS‑native data pipelines**. It includes ready‑made patterns for **S3 ingestion**, **Glue ETL**, **Lambda validation**, **Redshift loading**, **Athena SQL use**, **Step Functions for heavy workflows**, and **API Gateway → Lambda ingestion**.
 
 > Use this as a GitHub Template Repository to give teams a fast, consistent starting point.
 
 ---
 
 ## What's included
-- **End‑to‑end Prefect flow**: Extract → Stage to S3 → Glue ETL → Lambda validation → Load to Redshift
+- **End‑to‑end flow**: Extract → Stage to S3 → Glue ETL → Lambda validation → Load to Redshift
 - **AWS modules**: S3 utilities, Glue job trigger, Lambda invoker, Redshift loader (psycopg2 + Data API)
 - **Extras**: Athena query examples, Step Functions pattern, API Gateway → Lambda ingestion pattern
 - **Dev experience**: Config files, tests, Makefile, (optional) GitHub Actions for CI and Prefect deployment
