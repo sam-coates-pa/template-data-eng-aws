@@ -1,9 +1,13 @@
-import logging
-from unittest.mock import patch, MagicMock
 import json
+import logging
+from unittest.mock import patch
 
-# Import your real loader module
-from loader import load_to_redshift, copy_to_redshift
+# Import the uploader functions
+from uploader import (
+    upload_file_to_s3,
+    upload_json_to_s3,
+    upload_bytes_to_s3
+)
 
 # -----------------------------------------------------
 # Logging Setup
@@ -16,79 +20,76 @@ logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------
-# Fake Redshift Connection + Cursor
+# Fake S3 Client for Local Testing
 # -----------------------------------------------------
-class FakeCursor:
-    def execute(self, sql, params=None):
-        logger.info("[MOCK] Executing SQL:")
-        logger.info(f"SQL: {sql}")
-        logger.info(f"Params: {params}")
-
-    def close(self):
-        logger.info("[MOCK] Closing cursor.")
-
-
-class FakeConnection:
-    autocommit = True
-
-    def cursor(self):
-        logger.info("[MOCK] Creating cursor.")
-        return FakeCursor()
-
-    def close(self):
-        logger.info("[MOCK] Closing Redshift connection.")
-
-
-# -----------------------------------------------------
-# Test COPY Command
-# -----------------------------------------------------
-def test_copy_to_redshift():
-    fake_conn = FakeConnection()
-
-    logger.info("Running COPY test...")
-
-    with patch("loader.psycopg2.connect", return_value=fake_conn):
-
-        # Run COPY using loader implementation
-        copy_to_redshift(
-            conn=fake_conn,
-            table="test_table",
-            s3_path="s3://test-bucket/raw/data.json",
-            iam_role_arn="arn:aws:iam::123456789012:role/TestRole",
-            region="eu-west-2",
-            format="JSON",
-            jsonpath="auto"
-        )
-
-    logger.info("COPY command test completed.")
-
-
-# -----------------------------------------------------
-# Test Full Redshift Loader
-# -----------------------------------------------------
-def test_full_loader():
+class FakeS3Client:
     """
-    Runs load_to_redshift end-to-end with fake connections.
+    A simple mock S3 client to simulate uploads without touching AWS.
     """
 
-    logger.info("Running full Redshift load test...")
+    def upload_file(self, Filename, Bucket, Key):
+        logger.info(f"[MOCK] upload_file → {Filename} → s3://{Bucket}/{Key}")
+        return True
 
-    with patch("loader.psycopg2.connect", return_value=FakeConnection()):
+    def put_object(self, Bucket, Key, Body, **kwargs):
+        logger.info(f"[MOCK] put_object → s3://{Bucket}/{Key}")
+        return {"ResponseMetadata": {"HTTPStatusCode": 200}}
 
-        result = load_to_redshift(
-            host="fake",
-            port=5439,
-            db="testdb",
-            user="test",
-            password="test",
-            table="test_table",
-            s3_path="s3://test-bucket/raw/data.json",
-            iam_role_arn="arn:aws:iam::123456789012:role/TestRole"
+
+def mock_boto3_client(service_name):
+    if service_name == "s3":
+        return FakeS3Client()
+    raise NotImplementedError(f"No mock client for: {service_name}")
+
+
+# -----------------------------------------------------
+# Test File Upload
+# -----------------------------------------------------
+def test_upload_file():
+    logger.info("Running file upload test...")
+
+    with patch("uploader.s3", FakeS3Client()):
+        result = upload_file_to_s3(
+            local_path="tests/sample.txt",
+            bucket="test-bucket",
+            key="raw/sample.txt"
         )
 
-    logger.info("Test finished with result:")
-    logger.info(json.dumps(result, indent=2))
+    logger.info(f"Result: {json.dumps(result, indent=2)}")
+    return result
 
+
+# -----------------------------------------------------
+# Test JSON Upload
+# -----------------------------------------------------
+def test_upload_json():
+    logger.info("Running JSON upload test...")
+
+    with patch("uploader.s3", FakeS3Client()):
+        result = upload_json_to_s3(
+            data={"hello": "world"},
+            bucket="test-bucket",
+            key="json/sample.json"
+        )
+
+    logger.info(f"Result: {json.dumps(result, indent=2)}")
+    return result
+
+
+# -----------------------------------------------------
+# Test Bytes Upload
+# -----------------------------------------------------
+def test_upload_bytes():
+    logger.info("Running bytes upload test...")
+
+    with patch("uploader.s3", FakeS3Client()):
+        result = upload_bytes_to_s3(
+            bytes_data=b"binarydata",
+            bucket="test-bucket",
+            key="binary/sample.bin"
+        )
+
+    logger.info(f"Result: {json.dumps(result, indent=2)}")
     return result
 
 
@@ -96,9 +97,12 @@ def test_full_loader():
 # Local Test Runner
 # -----------------------------------------------------
 if __name__ == "__main__":
-    logger.info("--- Running Redshift COPY Unit Test ---")
-    test_copy_to_redshift()
+    logger.info("--- S3 File Upload Test ---")
+    print(json.dumps(test_upload_file(), indent=2))
 
-    logger.info("--- Running Full Loader Unit Test ---")
-    output = test_full_loader()
-    print(json.dumps(output, indent=2))
+    logger.info("--- S3 JSON Upload Test ---")
+    print(json.dumps(test_upload_json(), indent=2))
+
+    logger.info("--- S3 Bytes Upload Test ---")
+    print(json.dumps(test_upload_bytes(), indent=2))
+
