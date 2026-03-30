@@ -1,6 +1,6 @@
 from prefect import flow, task, get_run_logger
 
-# Import your template modules
+# Import template modules
 from glue_job.job_script import main as run_glue_template
 from lambda.lambda_function import lambda_handler as run_lambda_template
 
