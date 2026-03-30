@@ -1,1 +1,41 @@
-prod: true
+environment: prod
+
+aws:
+  region: eu-west-2
+  profile: prod
+  account_id: "<PROD_ACCOUNT_ID>"
+
+s3:
+  raw_bucket: "my-project-prod-raw"
+  processed_bucket: "my-project-prod-processed"
+  temp_bucket: "my-project-prod-temp"
+
+glue:
+  job_name: "my-project-prod-glue-job"
+  temp_dir: "s3://my-project-prod-temp/glue-temp/"
+  max_capacity: 10
+
+lambda:
+  function_name: "my-project-prod-lambda"
+  invocation_type: "Event"
+
+redshift:
+  host: "my-redshift-prod.cluster.amazonaws.com"
+  port: 5439
+  database: "proddb"
+  user: "etl_user"
+  password: "USE_SECRETS_MANAGER"
+  iam_role_arn: "arn:aws:iam::<PROD_ACCOUNT_ID>:role/RedshiftCopyRoleProd"
+
+observability:
+  cloudwatch_logs_enabled: true
+  metric_namespace: "MyProject/Prod"
+
+pipeline:
+  enabled_steps:
+    - extract
+    - transform
+    - s3_upload
+    - glue_trigger
+    - lambda_invoke
+    - redshift_load
