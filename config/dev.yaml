@@ -1,1 +1,36 @@
-dev: true
+environment: dev
+
+aws:
+  region: eu-west-2
+  profile: dev
+  account_id: "<DEV_ACCOUNT_ID>"
+
+s3:
+  raw_bucket: "my-project-dev-raw"
+  processed_bucket: "my-project-dev-processed"
+  temp_bucket: "my-project-dev-temp"
+
+glue:
+  job_name: "my-project-dev-glue-job"
+  temp_dir: "s3://my-project-dev-temp/glue-temp/"
+
+lambda:
+  function_name: "my-project-dev-lambda"
+  invocation_type: "RequestResponse"
+
+redshift:
+  host: "my-redshift-dev.cluster.amazonaws.com"
+  port: 5439
+  database: "devdb"
+  user: "dev_user"
+  password: "dev_password"
+  iam_role_arn: "arn:aws:iam::<DEV_ACCOUNT_ID>:role/RedshiftCopyRoleDev"
+
+pipeline:
+  enabled_steps:
+    - extract
+    - transform
+    - s3_upload
+    - glue_trigger
+    - lambda_invoke
+    - redshift_load
