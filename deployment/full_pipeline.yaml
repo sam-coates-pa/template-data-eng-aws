@@ -1,0 +1,23 @@
+### Prefect Deployment for full-aws-pipeline
+
+name: full-aws-pipeline
+description: "Full AWS data engineering pipeline using Prefect + GitHub storage"
+
+flow:
+  entrypoint: flows/full_pipeline.py:full_pipeline
+
+storage:
+  module: prefect.filesystems
+  class: GitHub
+  repo: https://github.com/<your-org-or-user>/template-data-eng-aws
+  branch: main
+  # Optional if repo is public:
+  # access_token: "{{ prefect.blocks.secret.github-token }}" 
+
+work_pool:
+  name: default-agent-pool
+  work_queue_name: default
+
+parameters: {}
+
+tags: ["aws", "pipeline", "template"]
