@@ -90,7 +90,7 @@ src/aws/                   # AWS service helpers
 glue-job/                  # AWS Glue ETL job script(s)
 
 lambda/                    # AWS Lambda function source
-    lambda_function.py     # Example Lambda function
+    lambda_function.py     # Lambda function
 
 config/                    # Environment-specific configuration
     dev.yaml               # Development config
@@ -101,10 +101,10 @@ scripts/                   # Prefect deployment utilities
     register_flows.py      # Registers Prefect deployments
 
 tests/                     # Unit tests for AWS modules & flows
-    test_s3.py             # Placeholder S3 test
-    test_glue.py           # Placeholder Glue test
-    test_lambda.py         # Placeholder Lambda test
-    test_redshift.py       # Placeholder Redshift test
+    test_s3.py             # S3 testing file
+    test_glue.py           # Glue testing file
+    test_lambda.py         # Lambda testing file
+    test_redshift.py       # Redshift testing file
 
 data/                      # Sample or placeholder data assets (optional)
 
