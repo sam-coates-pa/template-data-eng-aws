@@ -23,7 +23,7 @@ target_path = args["TARGET_PATH"]
 output_format = args["FORMAT"]
 
 # -----------------------------------------------------
-# Initialize Glue and Spark
+# Initialise Glue and Spark
 # -----------------------------------------------------
 sc = SparkContext()
 glue_context = GlueContext(sc)
