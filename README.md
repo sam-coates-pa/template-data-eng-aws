@@ -180,6 +180,58 @@ def pipeline(run_date: str):
     load_to_redshift(processed_prefix)
 ```
 
+Or
+
+## Airflow
+```python
+from datetime import datetime
+from airflow.decorators import dag, task
+
+@task(retries=3)
+def extract(run_date: str) -> dict:
+    # fetch from API or source and return payload/manifest
+    ...
+
+@task
+def stage_to_s3(payload: dict) -> str:
+    # write raw JSON/CSV; return S3 URI
+    ...
+
+@task
+def trigger_glue_job(s3_uri: str) -> str:
+    # start glue job with arguments and return job run id
+    ...
+
+@task
+def invoke_validator(s3_processed_prefix: str) -> None:
+    ...
+
+@task
+def load_to_redshift(s3_processed_prefix: str) -> int:
+    # COPY (driver) or Data API inserts
+    ...
+
+@dag(
+    dag_id="full-aws-pipeline",
+    schedule=None,  # Can be set to a cron expression, e.g., "0 2 * * *"
+    start_date=datetime(2026, 1, 1),
+    catchup=False,
+    tags=["aws", "pipeline"],
+)
+def pipeline():
+    # In Airflow, run_date is usually retrieved via the template context.
+    # We default here to the standard execution date macro '{{ ds }}' (YYYY-MM-DD).
+    run_date = "{{ ds }}"
+    
+    raw_uri = stage_to_s3(extract(run_date))
+    processed_prefix = trigger_glue_job(raw_uri)
+    invoke_validator(processed_prefix)
+    load_to_redshift(processed_prefix)
+
+# Instantiate the DAG
+pipeline_dag = pipeline()
+```
+
 ---
 
 ## S3 Conventions
